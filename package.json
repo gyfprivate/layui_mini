@@ -1,0 +1,25 @@
+{
+  "name": "layui_mini",
+  "version": "1.0.0",
+  "description": "layui_mini_first",
+  "main": "index.html",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gyfprivate/layui_mini.git"
+  },
+  "keywords": [
+    "123456"
+  ],
+  "author": "ivan",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/gyfprivate/layui_mini/issues"
+  },
+  "homepage": "https://github.com/gyfprivate/layui_mini#readme"
+}
