@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>帐号</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="stylesheet" href="http://localhost:5147/lib/layui-v2.8.4/css/layui.css" media="all">
+    <link rel="stylesheet" href="http://localhost:5147/css/public.css?v=1" media="all">
+    <link rel="stylesheet" href="http://localhost:5147/css/soulTable.css" media="all">
+</head>
+
+<body>
+
+    <style>
+        .layui-form-item .layui-input-company {
+            width: auto;
+            padding-right: 10px;
+            line-height: 38px;
+        }
+    </style>
+    <div class="layuimini-container layuimini-page-anim">
+        <div class="layuimini-main">
+
+            <div lay-filter="setting" class="layui-form layuimini-form">
+                <div class="layui-form-item">
+                    <label class="layui-form-label required">姓名</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="name" lay-verify="required" lay-reqtext="姓名不能为空" placeholder="请输入姓名" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label required">电话</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="phone" lay-verify="required" lay-reqtext="电话不能为空" placeholder="请输入电话" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label required">密码</label>
+                    <div class="layui-input-block">
+                        <div class="layui-form-mid layui-word-aux">密码默认是 123456</div>
+                        <!-- <input type="text"  class="layui-input"   value="密码默认是 123456" > -->
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">上级</label>
+                    <div class="layui-input-inline">
+                        <select id="leadersearch" name="leader" lay-search="">
+                            <option value="">直接选择或搜索选择</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <div class="layui-input-block">
+                        <button class="layui-btn layui-btn-normal" lay-submit lay-filter="setting">保存</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="http://localhost:5147/lib/layui-v2.8.4/layui.js" charset="utf-8"></script>
+    <script src="http://localhost:5147/js/lay-config.js?v=3" charset="utf-8"></script>
+
+
+
+    <script>
+        layui.use(['form', 'ivan'], function() {
+            var form = layui.form,
+                layer = layui.layer;
+            var jwt = layui.jwt;
+            var ivan = layui.ivan;
+            var $ = layui.$;
+
+            /**
+             * 初始化表单，要加上，不然刷新部分组件可能会不加载
+             */
+            form.render();
+            console.log(window.parent.parentTableData) //动态下拉表https://blog.csdn.net/qq_32784303/article/details/128406645
+            var addOption = function(item) {
+                // console.log(item)
+                $("#leadersearch").append('<option value="' + item.id + '">' + item.name + '</option>')
+            }
+            window.parent.parentTableData.forEach(addOption)
+            form.render('select');
+            form.val('setting', window.parent.currentData); //设置当前值
+            //监听提交
+            form.on('submit(setting)', function(data) {
+                var d = {
+                    ...data.field,
+                    ... {
+                        id: 0,
+                        password: "123456"
+                    }
+                }
+                d.leader = d.leader || 0
+
+                jwt.req({
+                    url: ivan.url('com/api/user/add'),
+                    type: 'post',
+                    data: d,
+                    success: function(data) {
+                        console.log(data)
+                        if (data.code != 0) {
+                            layer.msg('保存出错\r\n' + data.msg, {
+                                shift: -1,
+                                time: 1500
+                            });
+                        } else {
+                            layer.msg('保存成功', {
+                                shift: -1,
+                                time: 500
+                            }, function() {
+                                window.parent.reload() //父窗口刷新
+                                var iframeIndex = parent.layer.getFrameIndex(window.name);
+                                parent.layer.close(iframeIndex);
+                            });
+                        }
+                    },
+                    error: function(e) {
+                        layer.msg(e.status, {
+                            shift: -1,
+                            time: 1500
+                        });
+                    }
+                })
+                return false;
+            });
+        });
+    </script>
+</body>

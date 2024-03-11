@@ -1,0 +1,10 @@
+{
+    "code": 0,
+    "msg": null,
+    "data": {
+        "store": [{ "name": "广州正佳", "value": 1 }, { "name": "香港迪士尼", "value": 2 }],
+        "machine": [{ "name": "广州正佳1号机", "value": 1 }, { "name": "香港迪士尼2号机", "value": 2 }],
+        "content": [{ "name": "天上人间", "value": 1 }, { "name": "地下城", "value": 2 }]
+
+    }
+}

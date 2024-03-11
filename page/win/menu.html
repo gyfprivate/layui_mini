@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>layui</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="stylesheet" href="http://localhost:5147/lib/layui-v2.8.4/css/layui.css" media="all">
+    <link rel="stylesheet" href="http://localhost:5147/css/public.css?v=1" media="all">
+    <link rel="stylesheet" href="http://localhost:5147/css/soulTable.css" media="all">
+    <link rel="stylesheet" href="http://localhost:5147/lib/font-awesome-4.7.0/css/font-awesome.min.css" media="all">
+
+</head>
+
+<body>
+
+    <div class="layuimini-container layuimini-page-anim">
+        <div class="layuimini-main">
+            <!-- {
+            "id": 0,
+            "userId": 0,
+            "userName": null,
+            "password": null,
+            "port": null,
+            "recivePort": 0,
+            "senderServerIp": null,
+            "reciveServerIp": null,
+            "email": null
+          } -->
+            <form class="layui-form" action="" lay-filter="ff">
+                <input type="hidden" name="id" />
+                <input type="hidden" name="target" />
+                <input type="hidden" name="pid" value="0" />
+                <input type="hidden" name="type" />
+                <input type="hidden" name="enable" value="true" />
+                <div class="layui-form-item">
+                    <label class="layui-form-label">名称</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="title" lay-verify="required" autocomplete="off" placeholder="" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">icon</label>
+                    <div class="layui-input-block">
+                        <input type="hidden" name="icon">
+                        <input id="icon" type="text" autocomplete="off" placeholder="" class="layui-input">
+                    </div>
+                </div>
+
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">URL</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="href" autocomplete="off" placeholder="" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">序号</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="index" lay-verify="required" autocomplete="off" placeholder="" class="layui-input">
+                        <div class="layui-form-mid layui-word-aux">在同级菜单中,序号越小排序越前</div>
+                    </div>
+                </div>
+
+
+                <div class="layui-form-item">
+                    <div class="layui-input-block">
+                        <button class="layui-btn layui-btn-normal" lay-submit lay-filter="setting">提交</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <script src="http://localhost:5147/lib/layui-v2.8.4/layui.js" charset="utf-8"></script>
+    <script src="http://localhost:5147/js/lay-config.js?v=3" charset="utf-8"></script>
+
+
+
+    <script>
+        layui.use(['form', 'laydate', 'ivan', 'iconPickerFa'], function() {
+            var form = layui.form,
+                layer = layui.layer,
+                icon = layui.iconPickerFa,
+                $ = layui.$,
+                jwt = layui.jwt,
+                laydate = layui.laydate;
+            var ivan = layui.ivan;
+            pData = window.parent.currentData
+            console.log(pData)
+            form.val('ff', pData)
+
+
+            try {
+                var tmp_icon = (pData.icon || '').match(/\s(fa-.*)(\s)?/)[1]
+                $('#icon').val(tmp_icon)
+            } catch {}
+            /**
+             * 初始化表单，要加上，不然刷新部分组件可能会不加载
+             */
+            form.render();
+            icon.render({
+                // 选择器，推荐使用input
+                elem: '#icon',
+                // fa 图标接口
+                url: "/lib/font-awesome-4.7.0/less/variables.less",
+                // 是否开启搜索：true/false
+                search: true,
+                // 是否开启分页
+                page: true,
+                // 每页显示数量，默认12
+                limit: 16,
+                // 点击回调
+                click: function(data) {
+                    console.log(data);
+                    form.val('ff', {
+                        icon: 'fa ' + data.icon
+                    })
+                },
+                // 渲染成功后的回调
+                success: function(d) {}
+            });
+            //监听提交
+            form.on('submit(setting)', function(data) {
+                // layer.alert(JSON.stringify(data.field), {
+                //     title: '最终的提交信息'
+                // })
+                console.log(data.field)
+
+                ivan.set_req({
+                    url: ivan.url('com/api/menu'),
+                    data: data.field,
+                    type: 'post'
+                }, data.field.id == 0 ? '增加成功' : '修改成功', function() {
+                    window.parent.reload()
+                    var iframeIndex = parent.layer.getFrameIndex(window.name);
+                    parent.layer.close(iframeIndex);
+                })
+
+                return false;
+            });
+
+
+        });
+    </script>
+</body>
+
+</html>

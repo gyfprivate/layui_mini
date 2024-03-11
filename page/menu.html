@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>menu</title>
+    <link rel="stylesheet" href="http://localhost:5147/lib/layui-v2.9.3/css/layui.css" media="all">
+    <link rel="stylesheet" href="http://localhost:5147/lib/font-awesome-4.7.0/css/font-awesome.min.css" media="all">
+    <link rel="stylesheet" href="http://localhost:5147/css/public.css?v=1" media="all">
+    <style>
+        .layui-btn:not(.layui-btn-lg):not(.layui-btn-sm):not(.layui-btn-xs) {
+            height: 34px;
+            line-height: 34px;
+            padding: 0 8px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="layuimini-container">
+        <div class="layuimini-main">
+            <div class="layui-row layui-col-space15">
+                <div class="layui-col-xs12 layui-col-md8">
+                    <table id="munu-table" class="layui-table" lay-filter="munu-table"></table>
+                </div>
+                <div class="layui-col-xs12 layui-col-md4">
+                    <div class="layui-card">
+                        <div class="layui-card-header">授权角色</div>
+                        <div class="layui-card-body">
+                            <div id="table_r1" lay-filter="table_r1"></div>
+                        </div>
+                    </div>
+                    <button class="layui-btn layui-btn-sm" lay-on="save_r1">保存选择</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script type="text/html" id="menu_toolbar">
+        <div class="layui-btn-container">
+
+            <button class="layui-btn layui-btn-sm layui-btn-danger" lay-event="add">新增主菜单</button>
+        </div>
+    </script>
+    <!-- 操作列 -->
+    <script type="text/html" id="auth-state">
+        {{#if(!d.href&&d.type==0){}}
+        <a class="layui-btn layui-btn-normal layui-btn-xs" lay-event="add">增加子菜单</a> {{#}}} {{#if(d.href&&d.type==0){}}
+        <a class="layui-btn layui-btn-xs" lay-event="addbtn">增加按钮</a> {{#}}}
+        <a class="layui-btn layui-btn-primary layui-btn-xs" lay-event="edit">修改</a>
+        <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+        <!-- <a class="layui-btn layui-btn-success layui-btn-xs" lay-event="role">设置权限</a> -->
+
+    </script>
+
+    <script src="http://localhost:5147/lib/layui-v2.9.3/layui.js" charset="utf-8"></script>
+    <script src="http://localhost:5147/js/lay-config.js?v=3" charset="utf-8"></script>
+    <script>
+        layui.use(['table', 'treetable', 'ivan'], function () {
+            var $ = layui.jquery;
+            var table = layui.table;
+            var treetable = layui.treetable;
+            var jwt = layui.jwt;
+            var ivan = layui.ivan;
+            var tree = layui.tree;
+            var util = layui.util;
+
+            // 渲染表格
+            reload = function () {
+                treetable.render({
+                    treeColIndex: 1,
+                    treeSpid: 0,
+                    toolbar: '#menu_toolbar',
+                    treeIdName: 'id',
+                    treePidName: 'pid',
+                    elem: '#munu-table',
+                    url: ivan.url('com/api/menu/all'),
+                    headers: jwt.getTabelToken(),
+                    page: false,
+                    defaultToolbar: [], //去掉右上角工具按钮
+                    cols: [
+                        [{
+                            field: 'id',
+                            width: 30,
+                            title: 'ID'
+                        }, {
+                            field: 'title',
+                            minWidth: 200,
+                            title: '名称'
+                        }, {
+                            field: 'icon',
+                            title: '图标',
+                            width: 60,
+                            templet: function (d) {
+                                return '<i class="' + d.icon + '"></i>'
+                            }
+                        }, {
+                            field: 'href',
+                            title: '菜单url'
+                        }, {
+                            field: 'index',
+                            width: 60,
+                            align: 'center',
+                            title: '排序'
+                        }, {
+                            field: 'isMenu',
+                            width: 80,
+                            align: 'center',
+                            templet: function (d) {
+
+                                if (d.pid == 0) { //上面的系统
+                                    return '<span class="layui-badge layui-bg-blue">目录</span>';
+                                } else if (d.type == 1) { //按钮
+                                    return '<span class="layui-badge layui-bg-purple">按钮</span>';
+
+                                } else if (!d.href) { //一级菜单
+                                    return '<span class="layui-badge layui-bg-green">菜单</span>';
+                                } else { //二级菜单
+                                    return '<span class="layui-badge-rim">子菜单</span>';
+                                }
+                            },
+                            title: '类型'
+                        }, {
+                            templet: '#auth-state',
+                            width: 210,
+                            align: 'right',
+                            title: '操作'
+                        }]
+                    ],
+                    done: function (res, curr, count) {
+                        console.log(res.data)
+                        console.log(res)
+                        console.log(curr)
+                        console.log(count)
+                    }
+                });
+            }
+            reload()
+            $('#btn-expand').click(function () {
+                treetable.expandAll('#munu-table');
+            });
+
+            $('#btn-fold').click(function () {
+                treetable.foldAll('#munu-table');
+            });
+            currentData = {}
+            // 表头工具栏工具事件
+            table.on("toolbar(munu-table)", function (obj) {
+                var config = obj.config;
+                var tableId = config.id;
+                //var status = treeTable.checkStatus(tableId);
+                // 获取选中行
+                //if (obj.event === "getChecked") {
+                //    if (!status.data.length) return layer.msg('无选中数据');
+                //    console.log(status);
+                //    layer.alert("当前数据选中已经输出到控制台，<br>您可按 F12 从控制台中查看结果。");
+                //}
+                if (obj.event === 'add') {
+                    currentData.pid = 0
+                    currentData.id = 0
+                    currentData.title = ''
+                    currentData.icon = 'fa fa-home'
+                    currentData.type = 0
+                    var index = layer.open({
+                        title: '增加主菜单',
+                        type: 2,
+                        shade: 0.2,
+                        maxmin: true,
+                        shadeClose: true,
+                        area: ['80%', '80%'],
+                        // offset: [openWH[2] + 'px', openWH[3] + 'px'],
+                        content: './win/menu.html',
+                    });
+
+                }
+            });
+            clickData = {} //当前点击行
+            // 行单击事件( 双击事件为: rowDouble )
+            table.on('row(munu-table)', function (obj) {
+                clickData = obj.data; // 获取当前行数据
+
+
+                freashTree(clickData.id)
+                // 标注当前点击行的选中状态
+                obj.setRowChecked({
+                    type: 'radio' // radio 单选模式；checkbox 复选模式
+                });
+            });
+            //监听工具条
+            table.on('tool(munu-table)', function (obj) {
+                var data = obj.data;
+                var layEvent = obj.event;
+                currentData = data
+                console.log(data)
+                if (layEvent === 'del') {
+
+                    layer.confirm('删除' + data.title, {
+                        btn: ['确定', '取消'] //按钮
+                    }, function () {
+                        ivan.set_req({
+                            url: ivan.url('com/api/menu/del'),
+                            data: data,
+                            type: 'post'
+                        }, '删除成功', function () {
+                            reload()
+                        })
+
+                    }, function () {
+
+                    });
+                } else if (layEvent === 'edit') {
+                    var index = layer.open({
+                        title: '编辑菜单',
+                        type: 2,
+                        shade: 0.2,
+                        maxmin: true,
+                        shadeClose: true,
+                        area: ['80%', '80%'],
+                        // offset: [openWH[2] + 'px', openWH[3] + 'px'],
+                        content: './win/menu.html',
+                    });
+                } else if (layEvent === 'add') {
+                    currentData.pid = currentData.id
+                    currentData.id = 0
+                    currentData.title = ''
+                    currentData.type = 0
+                    var index = layer.open({
+                        title: '增加菜单',
+                        type: 2,
+                        shade: 0.2,
+                        maxmin: true,
+                        shadeClose: true,
+                        area: ['80%', '80%'],
+                        // offset: [openWH[2] + 'px', openWH[3] + 'px'],
+                        content: './win/menu.html',
+                    });
+                } else if (layEvent === 'addbtn') {
+                    currentData.pid = currentData.id
+                    currentData.id = 0
+                    currentData.title = ''
+                    currentData.type = 1
+                    currentData.href = ''
+                    currentData.icon = ''
+                    var index = layer.open({
+                        title: '增加按钮',
+                        type: 2,
+                        shade: 0.2,
+                        maxmin: true,
+                        shadeClose: true,
+                        area: ['80%', '80%'],
+                        // offset: [openWH[2] + 'px', openWH[3] + 'px'],
+                        content: './win/menu.html',
+                    })
+                } else if (layEvent === 'role') {
+                    var index = layer.open({
+                        title: '[' + data.title + '] 权限',
+                        type: 2,
+                        shade: 0.2,
+                        maxmin: true,
+                        shadeClose: true,
+                        area: ['80%', '80%'],
+                        // offset: [openWH[2] + 'px', openWH[3] + 'px'],
+                        content: './win/menurole.html',
+                    })
+                }
+            });
+            //刷新权限列表
+            freashTree = function (id) {
+                jwt.req({
+                    url: ivan.url('com/api/menu/roles?id=' + id),
+                    success: function (data) {
+                        if (data.code === 0) {
+                            // 渲染角色列表
+                            tree.render({
+                                elem: '#table_r1',
+                                id: 'table_r1',
+                                showCheckbox: true,
+                                data: data.data,
+                                showLine: false // 是否开启连接线
+                            });
+                        }
+                    }
+                })
+            }
+            // 保存右边列表按钮事件
+            util.event('lay-on', {
+                save_r1: function (othis) {
+                    var checkedData = tree.getChecked('table_r1') // 获取选中节点的数据
+                    checkedData = ivan.flattenTree(checkedData)
+                    var data = checkedData.map(o => o.id)
+                    console.log(data);
+                    ivan.set_req({
+                        url: ivan.url('com/api/menu/roles'),
+                        type: 'post',
+                        data: {
+                            id: clickData.id,
+                            data
+                        }
+                    }, '更新成功')
+                },
+            });
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>role_modify</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="stylesheet" href="http://localhost:5147/lib/layui-v2.9.3/css/layui.css" media="all">
+    <link rel="stylesheet" href="http://localhost:5147/css/public.css" media="all">
+</head>
+
+<body>
+    <style>
+        .layui-form-item .layui-input-company {
+            width: auto;
+            padding-right: 10px;
+            line-height: 38px;
+        }
+    </style>
+    <div class="layuimini-container layuimini-page-anim">
+        <div class="layuimini-main">
+
+            <div lay-filter="setting" class="layui-form layuimini-form">
+                <input name="id" hidden />
+                <input name="rem" hidden />
+                <div class="layui-form-item">
+                    <label class="layui-form-label">角色名</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="name" lay-verify="required" lay-reqtext="姓名不能为空" placeholder="请输入姓名" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">上级</label>
+                    <div class="layui-input-inline">
+                        <select id="leadersearch" name="leader" lay-search="">
+                            <option value="">直接选择或搜索选择</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <div class="layui-input-block">
+                        <button class="layui-btn layui-btn-normal" lay-submit lay-filter="setting">确认修改</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="http://localhost:5147/lib/layui-v2.9.3/layui.js" charset="utf-8"></script>
+    <script src="http://localhost:5147/js/lay-config.js?v=3" charset="utf-8"></script>
+    <script>
+        layui.use(['form', 'ivan'], function() {
+            var form = layui.form,
+                layer = layui.layer;
+            var jwt = layui.jwt;
+            var ivan = layui.ivan;
+            var $ = layui.$ //重点处
+                /**
+                 * 初始化表单，要加上，不然刷新部分组件可能会不加载
+                 */
+            form.render();
+            // 获取父控件数据
+            pData = window.parent.currentData
+            console.log(pData)
+            form.val('setting', pData)
+            var addOption = function(item) {
+                    // console.log(item)
+                    $("#leadersearch").append('<option value="' + item.id + '">' + item.name + '</option>')
+                }
+                //下拉数据
+            jwt.req({
+                    url: ivan.url('com/api/role/all'),
+                    success: function(response) {
+                        if (response.code == 0) {
+                            console.log(response.data) //动态下拉表https://blog.csdn.net/qq_32784303/article/details/128406645
+                            response.data.forEach(addOption)
+                            form.val('setting', {
+                                leader: pData.leader
+                            })
+                            form.render('select');
+                        }
+                    }
+                })
+                //监听提交
+            form.on('submit(setting)', function(data) {
+                data.field.leader = data.field.leader || 0 //默认为0
+                console.log(data.field)
+                ivan.set_req({
+                        url: ivan.url('com/api/role'),
+                        type: 'post',
+                        data: data.field
+                    }, '保存成功',
+                    function() {
+                        window.parent.reload() //父窗口刷新
+                        var iframeIndex = parent.layer.getFrameIndex(window.name);
+                        parent.layer.close(iframeIndex);
+                    }
+                )
+                return false;
+            });
+        });
+    </script>
+</body>

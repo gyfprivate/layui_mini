@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>user</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="stylesheet" href="http://localhost:5147/lib/layui-v2.9.3/css/layui.css" media="all">
+    <link rel="stylesheet" href="http://localhost:5147/lib/font-awesome-4.7.0/css/font-awesome.min.css" media="all">
+    <link rel="stylesheet" href="http://localhost:5147/css/public.css?v=1" media="all">
+    <style>
+        .top-panel {
+            border: 1px solid #eceff9;
+            border-radius: 5px;
+            text-align: center;
+        }
+        
+        .top-panel>.layui-card-body {
+            height: 60px;
+        }
+        
+        .top-panel-number {
+            line-height: 60px;
+            font-size: 30px;
+            border-right: 1px solid #eceff9;
+        }
+        
+        .top-panel-tips {
+            line-height: 30px;
+            font-size: 12px
+        }
+        
+        .layui-form-item {
+            margin-bottom: 0;
+        }
+        
+        .layui-input-group>.layui-btn {
+            margin-left: 40px !important;
+            display: inline;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="layuimini-container">
+        <div class="layuimini-main">
+
+            <table id="user-table" class="layui-table" lay-filter="user-table"></table>
+
+
+        </div>
+
+        <!-- 用户列表抬头工具 -->
+        <script type="text/html" id="user_toolbar">
+            <div class="layui-form" lay-filter="f_search">
+                <div class="layui-input-group">
+                    <input type="text" placeholder="输入名称或电话搜索" class="layui-input" name="keyword">
+                    <div class="layui-input-split layui-input-suffix" style="cursor: pointer;" lay-event="search">
+                        <i class="layui-icon layui-icon-search"></i>
+                    </div>
+                    <button class="layui-btn layui-btn-sm" lay-event="add">新增用户</button>
+                </div>
+
+            </div>
+        </script>
+        <!-- 操作列 -->
+        <script type="text/html" id="user_tablebar">
+            <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="repassword">重置密码</a>
+            <!-- <a class="layui-btn layui-btn-normal layui-btn-xs" lay-event="leader">设置上级</a> -->
+            <!-- <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">失效</a> -->
+        </script>
+
+    </div>
+    <!--</div>-->
+    <script src="http://localhost:5147/lib/layui-v2.9.3/layui.js" charset="utf-8"></script>
+    <script src="http://localhost:5147/js/lay-config.js?v=1.0.4" charset="utf-8"></script>
+    <script>
+        layui.use(['table', 'treetable', 'ivan'], function() {
+            var $ = layui.jquery;
+            var table = layui.table;
+            var treetable = layui.treetable;
+            var jwt = layui.jwt;
+            var ivan = layui.ivan;
+            var tree = layui.tree;
+            var util = layui.util;
+            var form = layui.form;
+
+            form.render()
+                // 渲染表格
+            layer.load(2);
+            parentTableData = {} //传给窗口的值
+
+            //用户列表
+            reload = function() {
+                table.render({
+                    treeColIndex: 1,
+                    treeSpid: 0,
+                    toolbar: '#user_toolbar',
+                    treeIdName: 'id',
+                    treePidName: 'parentID',
+                    elem: '#user-table',
+                    url: ivan.url('com/api/user/all'),
+                    headers: jwt.getTabelToken(),
+                    page: true,
+                    limit: 25,
+                    limits: [25, 50, 100],
+                    where: form.val('f_search'), //搜索
+                    defaultToolbar: [], //去掉右上角工具按钮
+                    cols: [
+                        [{
+                            field: 'id',
+                            hide: true
+                        }, {
+                            field: 'leader',
+                            hide: true
+                        }, {
+                            field: 'name',
+                            title: '名称'
+                        }, {
+                            field: 'leader_name',
+                            title: '上级',
+                            templet: function(d) {
+                                return '<a class="layui-btn layui-btn-success layui-btn-xs" lay-event="leader">' + (d.leader_name || '设置上级') + '</a>'
+                            }
+                        }, {
+                            field: 'phone',
+                            minWidth: 130,
+                            title: '电话'
+                        }, {
+                            field: 'role',
+                            title: '角色',
+                            templet: function(d) {
+                                return '<a class="layui-btn layui-btn-success layui-btn-xs" lay-event="role">' + (d.role || '设置角色') + '</a>'
+                            }
+                        }, {
+                            templet: '#user_tablebar',
+                            width: 220,
+                            align: 'right',
+                            title: '操作'
+                        }]
+                    ],
+                    done: function(res, curr, count) {
+                        layer.closeAll('loading');
+                        parentTableData = res.data
+                        console.log(res.data)
+                    }
+                });
+            }
+            reload()
+
+
+
+
+            currentData = {}
+                // 用户表头工具栏工具事件
+            table.on("toolbar(user-table)", function(obj) {
+                var config = obj.config;
+                var tableId = config.id;
+
+                if (obj.event === 'add') {
+                    currentData.id = 0
+                    currentData.name = ''
+                    currentData.phone = ''
+                    currentData.leader = 0
+                    var index = layer.open({
+                        title: '增加用户',
+                        type: 2,
+                        shade: 0.2,
+                        maxmin: true,
+                        shadeClose: true,
+                        area: ['600px', '80%'],
+                        // offset: [openWH[2] + 'px', openWH[3] + 'px'],
+                        content: '/page/win/user.html',
+                    });
+                } else if (obj.event === 'search') {
+                    // 搜索
+                    console.log(form.val('f_search'))
+                    reload()
+                }
+            });
+            clickData = {} //当前点击行
+                // 行单击事件( 双击事件为: rowDouble )
+            table.on('row(user-table)', function(obj) {
+                clickData = obj.data; // 获取当前行数据
+                freashTree(clickData.id)
+                freashTable(clickData.id)
+                    // 标注当前点击行的选中状态
+                obj.setRowChecked({
+                    type: 'radio' // radio 单选模式；checkbox 复选模式
+                });
+            });
+            //监听用户工具条
+            table.on('tool(user-table)', function(obj) {
+                var data = obj.data;
+                var layEvent = obj.event;
+                currentData = data
+                console.log(data)
+                if (layEvent === 'del') {
+
+                    layer.confirm('删除[' + data.name + ']', {
+                        btn: ['确定', '取消'] //按钮
+                    }, function() {
+                        ivan.set_req({
+                            url: ivan.url('com/api/user/del'),
+                            data: data,
+                            type: 'post'
+                        }, '删除成功', function() {
+                            reload()
+                        })
+
+                    }, function() {
+
+                    });
+                } else if (layEvent === 'repassword') {
+                    // 重置密码
+                    layer.confirm('是否重置[' + data.name + ']的密码', {
+                        btn: ['确定', '取消'] //按钮
+                            ,
+                        title: '确认'
+                    }, function() {
+                        ivan.set_req({
+                            url: ivan.url('com/api/user/repassword'),
+                            data: data,
+                            type: 'post'
+                        }, '重置成功成功', function() {
+                            reload()
+                        })
+
+                    }, function() {
+
+                    });
+                } else if (layEvent === 'leader') { // 监听添加操作
+                    var index = layer.open({
+                        title: '设置上级',
+                        type: 2,
+                        shade: 0.2,
+                        maxmin: true,
+                        shadeClose: true,
+                        area: ['600px', '450px'],
+                        content: 'win/setleader.html',
+
+                    });
+                } else if (layEvent === 'role') { // 监听添加操作
+                    var index = layer.open({
+                        title: '设置角色',
+                        type: 2,
+                        shade: 0.2,
+                        maxmin: true,
+                        shadeClose: true,
+                        area: ['600px', '450px'],
+                        content: 'win/setuserrole.html',
+
+                    });
+                }
+            });
+
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,11 @@
+﻿{
+  "b_OldDomain": null,
+  "b_NewDomain": "http://localhost:5147",
+  "b_Msg": "D:\\work\\source\\app\\jy\\jycrm3\\IMS\\wwwroot\\page\\win\\user.html",
+  "b_Value": 100.0,
+  "b_Domain": "http://localhost:5147",
+  "b_LoginEnable": false,
+  "b_LoginTitle": null,
+  "b_IndexTitle": "捷易进销存系统",
+  "b_IndexEnable": true
+}

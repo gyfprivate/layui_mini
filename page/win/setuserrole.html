@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title></title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="stylesheet" href="http://localhost:5147/lib/layui-v2.9.3/css/layui.css" media="all">
+    <link rel="stylesheet" href="http://localhost:5147/lib/font-awesome-4.7.0/css/font-awesome.min.css" media="all">
+    <link rel="stylesheet" href="http://localhost:5147/css/public.css?v=1" media="all">
+    <style>
+
+    </style>
+</head>
+
+<body>
+    <div class="layuimini-container">
+        <div class="layui-card-body" style="padding: 20px;">
+            <div id="table" lay-filter="table"></div>
+        </div>
+        <button class="layui-btn layui-btn-sm" lay-on="save" style="float:right;margin:10px;">保存选择</button>
+    </div>
+    <!--</div>-->
+    <script src="http://localhost:5147/lib/layui-v2.9.3/layui.js" charset="utf-8"></script>
+    <script src="http://localhost:5147/js/lay-config.js?v=1.0.4" charset="utf-8"></script>
+    <script>
+        layui.use(['table', 'treetable', 'ivan'], function() {
+            var $ = layui.jquery;
+            var table = layui.table;
+            var treetable = layui.treetable;
+            var jwt = layui.jwt;
+            var ivan = layui.ivan;
+            var tree = layui.tree;
+            var util = layui.util;
+            var form = layui.form;
+
+            var id = window.parent.currentData.id
+            jwt.req({
+                    url: ivan.url('com/api/user/roles?id=' + id),
+                    success: function(data) {
+                        if (data.code === 0) {
+                            // 渲染角色列表
+                            tree.render({
+                                elem: '#table',
+                                id: 'table',
+                                showCheckbox: true,
+                                data: data.data,
+                                showLine: false // 是否开启连接线
+                            });
+                        }
+                    }
+                })
+                // 按钮事件
+            util.event('lay-on', {
+                save: function(othis) {
+                    // 保存权限
+                    var checkedData = tree.getChecked('table'); // 获取选中节点的数据
+                    console.log(checkedData);
+
+                    ivan.set_req({
+                        url: ivan.url('com/api/user/roles'),
+                        type: 'post',
+                        data: {
+                            id: id,
+                            data: checkedData.map(o => o.id)
+                        },
+
+                    }, '更新成功')
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>
