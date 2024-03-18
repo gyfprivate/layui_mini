@@ -40,6 +40,59 @@ layui.define(['jwt', 'form'], function(exports) {
             });
         },
 
+        /**
+         * table 的limit 保存
+         */
+        table: {
+
+            /**
+             * 点击改变背景色
+             *  table.on('row(table)', function(obj) {
+             * @param {*} obj 点击事件的obj
+             * @param {string} color 背景颜色
+             */
+            select: function (obj, color = '#31bdec') {
+                $(".layui-table-body tr ").attr({
+                    "style": "background:#FFFFFF;color:#000000;"
+                }); //其他tr恢复原样
+                // console.log(obj.tr.selector) //得到当前点击的tr
+                $(obj.tr.selector).attr({
+                    "style": "background:" + color + ";color:#5f5f5f;"
+                }); //改变当前tr颜色
+                // ————————————————
+
+                //                             版权声明：本文为博主原创文章，遵循 CC 4.0 BY-SA 版权协议，转载请附上原文出处链接和本声明。
+
+                // 原文链接：https://blog.csdn.net/qq_39307991/article/details/100990840
+            },
+
+            /**
+             * 获取当前limit
+             * @param {string} str 
+             * @param {num} def 
+             * @returns 
+             */
+            limit: function(str, def) {
+                if (str == undefined || str.length == 0) return
+                return layui.data('limit')[str] || def
+            },
+
+            /**
+             * 保存读取到的数据
+             * 在done函数中使用
+             * @param {string} str 读取的关键字
+             */
+            save: function(str, that) {
+                // layui.data('limit', {
+                //     key: str,
+                //     remove: true
+                // });
+                layui.data('limit', {
+                    key: str,
+                    value: that.limit
+                });
+            }
+        },
 
         /**
          * 树形结构的数组

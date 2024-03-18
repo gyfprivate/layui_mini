@@ -87,3 +87,26 @@ body {
     color: rgba(0, 0, 0, .85);
     width: 150px;
 }
+
+
+/* 子窗口 body */
+
+.window-body {
+    margin: 0;
+}
+
+
+/* 子窗口 底部按钮 */
+
+.window-foot {
+    position: sticky;
+    bottom: 0;
+    background-color: #fff;
+    height: 50px;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    flex-direction: row-reverse;
+    padding-right: 10px;
+    border-top: 10px solid #f2f2f2;
+}
